@@ -15,7 +15,7 @@ resource "spacelift_stack" "dynamic_stacks" {
   ]
 
   github_enterprise {
-    namespace = "spacelift-io-examples"
+    namespace = "spitzzz"
   }
 }
 
