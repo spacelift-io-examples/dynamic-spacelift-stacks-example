@@ -40,3 +40,4 @@ resource "spacelift_policy_attachment" "ignore_changes_outside_root_attachment" 
   policy_id = spacelift_policy.ignore_changes_outside_root_policy.id
   stack_id  = spacelift_stack.dynamic_stacks[each.key].id
 }
+
