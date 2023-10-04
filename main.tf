@@ -2,21 +2,25 @@
 resource "spacelift_stack" "dynamic_stacks" {
   for_each = local.stacks_clean_folders_filtered
 
-  name              = each.key
+  name              = "${local.stack_name_prefix} : ${upper(var.aws_account)} : ${each.key}"
+  description       = "${each.key} ${local.description_suffix}"
   administrative    = contains(local.administrative_paths, each.key)
   autodeploy        = true
   project_root      = each.key
-  repository        = "dynamic-spacelift-stacks-example"
-  branch            = "main"
-  terraform_version = "1.2.3"
+  repository        = var.repository_name
+  branch            = var.branch_name
+  terraform_version = var.terraform_version
 
-  labels = [
-    "dynamic"
-  ]
-
-  github_enterprise {
-    namespace = "spacelift-io-examples"
-  }
+  labels = concat(local.stack_labels, local.push_policy_labels, [
+    "folder:Infra/AWS-Account/${var.aws_account}",
+    "terraform",
+    var.repository_name,
+  ])
+  space_id     = var.space_id
+  runner_image = "ghcr.io/vimn-public/spacelift-runner-terraform:main"
+#  before_init = [
+#    "before_init",
+#  ]
 }
 
 # Triggers the stack after creation
@@ -24,6 +28,20 @@ resource "spacelift_run" "this" {
   for_each = local.stacks_clean_folders_filtered
 
   stack_id = spacelift_stack.dynamic_stacks[each.key].id
+}
+
+#context is tidy related with the integration
+resource "spacelift_context_attachment" "default" {
+  stack_id   = spacelift_stack.dynamic_stacks.id
+  context_id = var.context_id
+  priority   = 0
+}
+
+resource "spacelift_aws_integration_attachment" "default" {
+  stack_id       = spacelift_stack.dynamic_stacks.id
+  integration_id = var.cloud_integration_id
+  read           = true
+  write          = true
 }
 
 # Create the ignore changes outside root policy from file

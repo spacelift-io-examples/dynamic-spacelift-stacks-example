@@ -11,4 +11,9 @@ locals {
   stacks_clean_folders = [for file_path in local.stack_paths_raw : replace("${file_path}", "/main.tf", "")]
   # List of folder paths excluding the list of ignore paths
   stacks_clean_folders_filtered = setsubtract(local.stacks_clean_folders, toset(local.ignore_paths))
+
+  stack_name_prefix  = "Dynamic Stack "
+  description_suffix = "[managed by 'vc-vantage/spacelift-config-terraform' repo]"
+  stack_labels       = ["approval_devops"]
+  push_policy_labels = (var.project_root != "") ? ["push_pr_and_commit_outside_project_scope"] : []
 }
